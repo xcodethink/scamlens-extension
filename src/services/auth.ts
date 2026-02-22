@@ -18,7 +18,6 @@ export interface AuthResult {
   token: string;
   refreshToken: string;
   expiresIn: number;
-  balance: number;
   plan: 'free' | 'pro' | 'power';
   user: {
     id: string;
@@ -56,7 +55,6 @@ interface ApiAuthResponse {
     email: string;
     name: string;
     emailVerified: boolean;
-    balance: number;
     plan?: 'free' | 'pro' | 'power';
   };
 }
@@ -66,7 +64,6 @@ function toAuthResult(data: ApiAuthResponse): AuthResult {
     token: data.accessToken,
     refreshToken: data.refreshToken,
     expiresIn: data.expiresIn,
-    balance: data.user.balance,
     plan: data.user.plan || 'free',
     user: {
       id: data.user.id,
@@ -82,7 +79,6 @@ async function saveAuthState(result: AuthResult): Promise<void> {
     userToken: result.token,
     refreshToken: result.refreshToken,
     tokenExpiry: Date.now() + result.expiresIn * 1000,
-    tokenBalance: result.balance,
     plan: result.plan,
     userId: result.user.id,
     userEmail: result.user.email,
@@ -257,7 +253,9 @@ class AuthService {
     return new Promise((resolve, reject) => {
       // chrome.identity.launchWebAuthFlow requires a configured OAuth client
       // The redirect URL is: https://<extension-id>.chromiumapp.org/
-      const clientId = '925208345603-onemcpid1okmogf69mh1fr7gg43gcd0h.apps.googleusercontent.com';
+      // Replace with your own Google OAuth Client ID
+      // See: https://console.cloud.google.com/apis/credentials
+      const clientId = 'YOUR_GOOGLE_OAUTH_CLIENT_ID.apps.googleusercontent.com';
       const redirectUrl = chrome.identity.getRedirectURL();
       const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&response_type=id_token&redirect_uri=${encodeURIComponent(redirectUrl)}&scope=openid%20email%20profile&nonce=${crypto.randomUUID()}`;
 
@@ -297,7 +295,6 @@ class AuthService {
       userToken: '',
       refreshToken: '',
       tokenExpiry: 0,
-      tokenBalance: 0,
       plan: 'free',
       aiUsageThisMonth: 0,
       userId: '',
@@ -317,19 +314,12 @@ class AuthService {
       userToken: '',
       refreshToken: '',
       tokenExpiry: 0,
-      tokenBalance: 0,
       plan: 'free',
       aiUsageThisMonth: 0,
       userId: '',
       userEmail: '',
       userName: '',
     });
-  }
-
-  async refreshBalance(): Promise<number> {
-    const data = await apiClient.get<{ balance: number }>('/balance');
-    await storageService.saveSettings({ tokenBalance: data.balance });
-    return data.balance;
   }
 
   async refreshSubscription(): Promise<{ plan: string; aiUsageThisMonth: number }> {

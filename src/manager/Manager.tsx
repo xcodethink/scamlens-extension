@@ -599,6 +599,7 @@ export default function Manager() {
                 isBatchMode={isBatchMode}
                 selectedIds={selectedIds}
                 onToggleSelection={toggleSelection}
+                folders={folders}
               />
             ) : (
               <BookmarkList

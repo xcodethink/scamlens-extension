@@ -600,6 +600,7 @@
     "noBookmarks": "No bookmarks yet, please add some first",
     "error": "Classification failed",
     "saveError": "Save failed",
+    "saveSuccess": "Classification saved successfully! You can close this page now.",
     "resultDesc": "Created {{folders}} category folders for you. Drag bookmarks to adjust.",
     "reclassify": "Reclassify",
     "addFolder": "Add Folder",
@@ -631,8 +632,7 @@
   },
 
   "errors": {
-    "AUTH_TOKEN_REQUIRED": "Please login or purchase tokens first",
-    "INSUFFICIENT_BALANCE": "Insufficient balance, please recharge",
+    "AUTH_TOKEN_REQUIRED": "Please login first",
     "USAGE_LIMIT_REACHED": "Monthly AI usage limit reached, please upgrade your plan",
     "AUTH_EXPIRED": "Login expired, please login again",
     "API_KEY_REQUIRED": "Please configure Claude API Key first",

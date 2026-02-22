@@ -14,7 +14,6 @@ interface AuthUser {
 interface AuthState {
   isLoggedIn: boolean;
   user: AuthUser | null;
-  balance: number;
   plan: 'free' | 'pro' | 'power';
   aiUsageThisMonth: number;
   isLoading: boolean;
@@ -27,14 +26,13 @@ interface AuthState {
   verifyEmail: (params: VerifyEmailParams) => Promise<void>;
   oauthLogin: (provider: AuthProvider) => Promise<void>;
   logout: () => Promise<void>;
-  refreshBalance: () => Promise<void>;
+  refreshSubscription: () => Promise<void>;
   clearError: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   isLoggedIn: false,
   user: null,
-  balance: 0,
   plan: 'free',
   aiUsageThisMonth: 0,
   isLoading: false,
@@ -52,19 +50,14 @@ export const useAuthStore = create<AuthState>((set) => ({
             name: settings.userName,
             emailVerified: true,
           },
-          balance: settings.tokenBalance,
           plan: settings.plan || 'free',
           aiUsageThisMonth: settings.aiUsageThisMonth || 0,
         });
 
         // Silently refresh subscription info in background
         try {
-          const [balance, sub] = await Promise.all([
-            authService.refreshBalance(),
-            authService.refreshSubscription(),
-          ]);
+          const sub = await authService.refreshSubscription();
           set({
-            balance,
             plan: sub.plan as 'free' | 'pro' | 'power',
             aiUsageThisMonth: sub.aiUsageThisMonth,
           });
@@ -72,10 +65,10 @@ export const useAuthStore = create<AuthState>((set) => ({
           // Ignore — user is still logged in with cached data
         }
       } else {
-        set({ isLoggedIn: false, user: null, balance: 0, plan: 'free', aiUsageThisMonth: 0 });
+        set({ isLoggedIn: false, user: null, plan: 'free', aiUsageThisMonth: 0 });
       }
     } catch {
-      set({ isLoggedIn: false, user: null, balance: 0, plan: 'free', aiUsageThisMonth: 0 });
+      set({ isLoggedIn: false, user: null, plan: 'free', aiUsageThisMonth: 0 });
     }
   },
 
@@ -99,7 +92,6 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({
         isLoggedIn: true,
         user: result.user,
-        balance: result.balance,
         plan: result.plan,
       });
     } catch (err) {
@@ -118,7 +110,6 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({
         isLoggedIn: true,
         user: result.user,
-        balance: result.balance,
         plan: result.plan,
       });
     } catch (err) {
@@ -137,7 +128,6 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({
         isLoggedIn: true,
         user: result.user,
-        balance: result.balance,
         plan: result.plan,
       });
     } catch (err) {
@@ -153,7 +143,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       await authService.logout();
-      set({ isLoggedIn: false, user: null, balance: 0, plan: 'free', aiUsageThisMonth: 0 });
+      set({ isLoggedIn: false, user: null, plan: 'free', aiUsageThisMonth: 0 });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Logout failed';
       set({ error: message });
@@ -162,14 +152,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  refreshBalance: async () => {
+  refreshSubscription: async () => {
     try {
-      const [balance, sub] = await Promise.all([
-        authService.refreshBalance(),
-        authService.refreshSubscription(),
-      ]);
+      const sub = await authService.refreshSubscription();
       set({
-        balance,
         plan: sub.plan as 'free' | 'pro' | 'power',
         aiUsageThisMonth: sub.aiUsageThisMonth,
       });

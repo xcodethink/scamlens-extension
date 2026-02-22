@@ -212,12 +212,10 @@ Return ONLY a valid JSON object with this structure (no markdown, no explanation
 
     const prompt = this.buildPrompt(bookmarks);
 
-    // apiClient handles 401 auto-refresh and 402 balance errors
     const data = await apiClient.post<{
       success: boolean;
       data?: ClassificationResult;
       error?: string;
-      balance?: number;
     }>('/classify', {
       prompt,
       model: settings.apiModel,
@@ -225,12 +223,6 @@ Return ONLY a valid JSON object with this structure (no markdown, no explanation
 
     if (!data.success || !data.data) {
       throw new Error(data.error || 'Invalid response');
-    }
-
-    if (data.balance !== undefined) {
-      await storageService.saveSettings({
-        tokenBalance: data.balance,
-      });
     }
 
     return data.data;

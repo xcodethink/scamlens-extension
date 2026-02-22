@@ -1,5 +1,4 @@
 import { apiClient } from './apiClient';
-import { storageService } from './storage';
 import type { DomainInfo, SafeBrowsingResult, CloudflareRadarResult } from '../types';
 
 interface DomainIntelligenceData {
@@ -23,7 +22,6 @@ interface DomainIntelligenceResponse {
   success: boolean;
   data?: DomainIntelligenceData;
   cached?: boolean;
-  balance?: number;
   error?: string;
 }
 
@@ -67,11 +65,6 @@ export const domainIntelligenceService = {
 
     if (!response.success || !response.data) {
       throw new Error(response.error || 'Failed to fetch domain intelligence');
-    }
-
-    // Update balance in storage if returned
-    if (response.balance !== undefined) {
-      await storageService.saveSettings({ tokenBalance: response.balance });
     }
 
     // Store in session cache

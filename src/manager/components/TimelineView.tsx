@@ -1,8 +1,9 @@
 import { useMemo, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Bookmark } from '../../types';
-import { formatDate, formatMonth } from '../../utils/date';
-import { Check, CheckCircle2, Camera, Loader2, Inbox } from 'lucide-react';
+import type { Folder } from '../../types/folder';
+import { formatDate, formatDay, dayKey } from '../../utils/date';
+import { Check, CheckCircle2, Camera, Loader2, Inbox, FolderIcon } from 'lucide-react';
 
 interface TimelineViewProps {
   bookmarks: Bookmark[];
@@ -11,6 +12,7 @@ interface TimelineViewProps {
   isBatchMode?: boolean;
   selectedIds?: Set<string>;
   onToggleSelection?: (id: string) => void;
+  folders?: Folder[];
 }
 
 interface TimelineCardProps {
@@ -20,6 +22,7 @@ interface TimelineCardProps {
   isBatchMode?: boolean;
   isChecked?: boolean;
   onToggleCheck?: () => void;
+  folderName?: string;
 }
 
 function StatusBadge({ status }: { status: Bookmark['status'] }) {
@@ -55,7 +58,7 @@ function StatusBadge({ status }: { status: Bookmark['status'] }) {
   );
 }
 
-function TimelineCard({ bookmark, isSelected, onSelect, isBatchMode, isChecked, onToggleCheck }: TimelineCardProps) {
+function TimelineCard({ bookmark, isSelected, onSelect, isBatchMode, isChecked, onToggleCheck, folderName }: TimelineCardProps) {
   const { i18n } = useTranslation();
 
   const handleClick = () => {
@@ -105,9 +108,17 @@ function TimelineCard({ bookmark, isSelected, onSelect, isBatchMode, isChecked, 
           <h3 className="font-medium truncate text-sm">{bookmark.title}</h3>
           <StatusBadge status={bookmark.status} />
         </div>
-        <p className="text-xs sb-muted truncate">{bookmark.url}</p>
+        <div className="flex items-center gap-3 mt-0.5">
+          <p className="text-xs sb-muted truncate">{bookmark.url}</p>
+        </div>
+        {folderName && (
+          <div className="flex items-center gap-1 mt-1">
+            <FolderIcon className="w-3 h-3 text-violet-400/70" />
+            <span className="text-xs text-violet-300/70">{folderName}</span>
+          </div>
+        )}
       </div>
-      <div className="text-xs sb-muted">{formatDate(bookmark.createdAt, i18n.language)}</div>
+      <div className="text-xs sb-muted whitespace-nowrap">{formatDate(bookmark.createdAt, i18n.language)}</div>
     </div>
   );
 }
@@ -119,37 +130,44 @@ export default function TimelineView({
   isBatchMode = false,
   selectedIds = new Set(),
   onToggleSelection,
+  folders = [],
 }: TimelineViewProps) {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
 
-  const groupedByMonth = useMemo(() => {
+  const folderMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const f of folders) {
+      if (f.id !== 'all') map[f.id] = f.name;
+    }
+    return map;
+  }, [folders]);
+
+  const groupedByDay = useMemo(() => {
     const groups: Record<string, Bookmark[]> = {};
 
     bookmarks.forEach((b) => {
-      const month = formatMonth(b.createdAt, i18n.language);
-      if (!groups[month]) groups[month] = [];
-      groups[month].push(b);
+      const key = dayKey(b.createdAt);
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(b);
     });
 
-    // Sort within each month
-    Object.keys(groups).forEach((month) => {
-      groups[month].sort(
+    // Sort within each day (newest first)
+    Object.keys(groups).forEach((key) => {
+      groups[key].sort(
         (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
     });
 
     return groups;
-  }, [bookmarks, i18n.language]);
+  }, [bookmarks]);
 
-  const months = Object.keys(groupedByMonth).sort(
-    (a, b) => new Date(b).getTime() - new Date(a).getTime()
-  );
+  const days = Object.keys(groupedByDay).sort((a, b) => b.localeCompare(a));
 
   if (bookmarks.length === 0) {
     return (
       <div className="text-center py-20 sb-muted">
         <Inbox className="w-12 h-12 mx-auto mb-4 sb-muted" />
-        <p className="text-lg">No bookmarks yet</p>
+        <p className="text-lg">{t('common.noData', 'No bookmarks yet')}</p>
       </div>
     );
   }
@@ -160,20 +178,20 @@ export default function TimelineView({
       <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gradient-to-b from-violet-500 via-fuchsia-500 to-blue-500" />
 
       <div className="space-y-6">
-        {months.map((month) => (
-          <div key={month} className="relative pl-10">
+        {days.map((day) => (
+          <div key={day} className="relative pl-10">
             {/* Timeline dot */}
             <div className="absolute left-2 w-5 h-5 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 border-4 border-[var(--bg-primary)]" />
 
             <div className="mb-3">
-              <h3 className="font-bold text-fuchsia-300">{month}</h3>
+              <h3 className="font-bold text-fuchsia-300">{formatDay(groupedByDay[day][0].createdAt, i18n.language)}</h3>
               <span className="text-xs sb-muted">
-                {groupedByMonth[month].length} bookmarks
+                {groupedByDay[day].length} bookmarks
               </span>
             </div>
 
             <div className="space-y-2">
-              {groupedByMonth[month].map((bookmark) => (
+              {groupedByDay[day].map((bookmark) => (
                 <TimelineCard
                   key={bookmark.id}
                   bookmark={bookmark}
@@ -182,6 +200,7 @@ export default function TimelineView({
                   isBatchMode={isBatchMode}
                   isChecked={selectedIds.has(bookmark.id)}
                   onToggleCheck={() => onToggleSelection?.(bookmark.id)}
+                  folderName={folderMap[bookmark.folderId]}
                 />
               ))}
             </div>

@@ -24,6 +24,7 @@ import {
   AlertCircle,
   Sparkles,
   Save,
+  CheckCircle,
 } from 'lucide-react';
 
 interface DragItem {
@@ -44,6 +45,7 @@ export default function ClassifyPage() {
   const [dragItem, setDragItem] = useState<DragItem | null>(null);
   const [dragOverFolder, setDragOverFolder] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<{ current: number; total: number } | null>(null);
 
@@ -130,6 +132,12 @@ export default function ClassifyPage() {
     setDragOverFolder(null);
 
     if (!dragItem || !classificationResult) return;
+
+    // Dropping on the same folder — no-op
+    if (dragItem.sourceFolderId === targetFolderId) {
+      setDragItem(null);
+      return;
+    }
 
     if (dragItem.type === 'bookmark') {
       // Move bookmark to target folder
@@ -271,8 +279,7 @@ export default function ClassifyPage() {
         }
       }
 
-      // Close the page after success
-      window.close();
+      setSaveSuccess(true);
     } catch (err) {
       console.error('Save failed:', err);
       setError(t('classify.saveError') + ': ' + (err as Error).message);
@@ -355,6 +362,21 @@ export default function ClassifyPage() {
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-6xl mx-auto px-6 py-8">
+          {saveSuccess && (
+            <div className="mb-6 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <CheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0" />
+                <p className="text-sm text-emerald-400">{t('classify.saveSuccess', 'Classification saved successfully!')}</p>
+              </div>
+              <button
+                onClick={() => window.close()}
+                className="px-4 py-1.5 text-sm sb-button rounded-lg"
+              >
+                {t('common.close', 'Close')}
+              </button>
+            </div>
+          )}
+
           {error && (
             <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center gap-3">
               <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />

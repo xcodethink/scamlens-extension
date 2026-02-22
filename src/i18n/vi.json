@@ -600,6 +600,7 @@
     "noBookmarks": "Chưa có dấu trang, vui lòng thêm trước",
     "error": "Phân loại thất bại",
     "saveError": "Lưu thất bại",
+    "saveSuccess": "Đã lưu phân loại thành công! Bạn có thể đóng trang này.",
     "resultDesc": "Đã tạo {{folders}} thư mục phân loại cho bạn. Kéo dấu trang để điều chỉnh.",
     "reclassify": "Phân loại lại",
     "addFolder": "Thêm thư mục",
@@ -631,8 +632,7 @@
   },
 
   "errors": {
-    "AUTH_TOKEN_REQUIRED": "Vui lòng đăng nhập hoặc mua token trước",
-    "INSUFFICIENT_BALANCE": "Số dư không đủ, vui lòng nạp thêm",
+    "AUTH_TOKEN_REQUIRED": "Vui lòng đăng nhập trước",
     "USAGE_LIMIT_REACHED": "Đã đạt giới hạn AI tháng này, vui lòng nâng cấp gói",
     "AUTH_EXPIRED": "Đăng nhập hết hạn, vui lòng đăng nhập lại",
     "API_KEY_REQUIRED": "Vui lòng cấu hình Claude API Key trước",

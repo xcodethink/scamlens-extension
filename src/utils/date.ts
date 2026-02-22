@@ -29,6 +29,21 @@ export function formatMonth(dateStr: string, locale: string = 'en'): string {
   });
 }
 
+export function formatDay(dateStr: string, locale: string = 'en'): string {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString(locale === 'zh' ? 'zh-CN' : 'en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}
+
+/** Returns YYYY-MM-DD key for grouping */
+export function dayKey(dateStr: string): string {
+  const d = new Date(dateStr);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 export function getRelativeTime(dateStr: string, locale: string = 'en'): string {
   const date = new Date(dateStr);
   const now = new Date();

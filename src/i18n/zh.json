@@ -600,6 +600,7 @@
     "noBookmarks": "还没有收藏，请先添加一些网站",
     "error": "分类失败",
     "saveError": "保存失败",
+    "saveSuccess": "分类保存成功！你可以关闭此页面了。",
     "resultDesc": "已为你创建 {{folders}} 个分类文件夹，拖拽书签可调整分类",
     "reclassify": "重新分类",
     "addFolder": "新建文件夹",
@@ -631,8 +632,7 @@
   },
 
   "errors": {
-    "AUTH_TOKEN_REQUIRED": "请先登录或充值获取使用令牌",
-    "INSUFFICIENT_BALANCE": "余额不足，请充值后继续使用",
+    "AUTH_TOKEN_REQUIRED": "请先登录",
     "USAGE_LIMIT_REACHED": "本月 AI 用量已达上限，请升级计划",
     "AUTH_EXPIRED": "登录已过期，请重新登录",
     "API_KEY_REQUIRED": "请先配置 Claude API Key",

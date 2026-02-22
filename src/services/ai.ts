@@ -13,7 +13,6 @@ export interface AIService {
   generateSummary(content: string, title: string): Promise<SummaryResult>;
   translateText(text: string, targetLanguage: string): Promise<string>;
   isConfigured(): Promise<boolean>;
-  getBalance(): Promise<number>;
 }
 
 // Proxy service response format
@@ -21,7 +20,6 @@ interface ProxyResponse {
   success: boolean;
   data?: SummaryResult;
   error?: string;
-  balance?: number;
 }
 
 class AIProviderService implements AIService {
@@ -122,22 +120,6 @@ Return ONLY a valid JSON object, no markdown, no explanation:
     return Boolean(settings.apiKeys.custom && settings.apiBaseUrl);
   }
 
-  async getBalance(): Promise<number> {
-    const settings = await storageService.getSettings();
-
-    if (settings.apiMode !== 'proxy' || !settings.userToken) {
-      return -1;
-    }
-
-    try {
-      const data = await apiClient.get<{ balance: number }>('/balance');
-      return data.balance || 0;
-    } catch (error) {
-      console.error('Get balance error:', error);
-      return settings.tokenBalance;
-    }
-  }
-
   private async callProxy(content: string, title: string): Promise<SummaryResult> {
     const settings = await storageService.getSettings();
 
@@ -147,7 +129,6 @@ Return ONLY a valid JSON object, no markdown, no explanation:
 
     const prompt = this.buildPrompt(content, title);
 
-    // apiClient handles 401 auto-refresh and 402 balance errors
     const data = await apiClient.post<ProxyResponse>('/summarize', {
       prompt,
       model: settings.apiModel,
@@ -155,12 +136,6 @@ Return ONLY a valid JSON object, no markdown, no explanation:
 
     if (!data.success || !data.data) {
       throw new Error(data.error || 'Invalid response');
-    }
-
-    if (data.balance !== undefined) {
-      await storageService.saveSettings({
-        tokenBalance: data.balance,
-      });
     }
 
     return data.data;
@@ -344,13 +319,10 @@ ${truncated}`;
       // Use proxy translate endpoint — fallback to direct if not available
       try {
         const prompt = this.buildTranslatePrompt(text, targetLanguage);
-        const data = await apiClient.post<{ success: boolean; data?: string; error?: string; balance?: number }>('/translate', {
+        const data = await apiClient.post<{ success: boolean; data?: string; error?: string }>('/translate', {
           prompt,
           model: settings.apiModel,
         });
-        if (data.balance !== undefined) {
-          await storageService.saveSettings({ tokenBalance: data.balance });
-        }
         if (data.success && data.data) return data.data;
         throw new Error(data.error || 'Proxy translate failed');
       } catch {

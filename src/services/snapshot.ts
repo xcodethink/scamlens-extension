@@ -5,7 +5,7 @@ import type { SnapshotLevel } from '../types';
  * Token costs only apply to AI features and anti-fraud analysis.
  */
 export const snapshotService = {
-  canUseLevel(_level: SnapshotLevel, _balance: number, _isLoggedIn: boolean): boolean {
+  canUseLevel(_level: SnapshotLevel, _isLoggedIn: boolean): boolean {
     return true;
   },
 

@@ -80,7 +80,6 @@ export interface Settings {
   // Proxy mode configuration
   proxyEndpoint: string;
   userToken: string;
-  tokenBalance: number;
 
   // Subscription
   plan: PlanType;
@@ -133,7 +132,6 @@ export const DEFAULT_SETTINGS: Settings = {
   apiBaseUrl: '',
   proxyEndpoint: DEFAULT_PROXY_ENDPOINT,
   userToken: '',
-  tokenBalance: 0,
   plan: 'free',
   aiUsageThisMonth: 0,
   refreshToken: '',

@@ -52,7 +52,7 @@ async function refreshToken(): Promise<boolean> {
         accessToken: string;
         refreshToken: string;
         expiresIn: number;
-        user: { id: string; email: string; name: string; balance: number; plan?: string };
+        user: { id: string; email: string; name: string; plan?: string };
       };
 
       if (!data.success) return false;
@@ -61,7 +61,6 @@ async function refreshToken(): Promise<boolean> {
         userToken: data.accessToken,
         refreshToken: data.refreshToken,
         tokenExpiry: Date.now() + data.expiresIn * 1000,
-        tokenBalance: data.user.balance,
         plan: (data.user.plan as 'free' | 'pro' | 'power') || 'free',
         userId: data.user.id,
         userEmail: data.user.email,
